@@ -10,7 +10,51 @@
     <header>
       <h1>Mergington High School</h1>
       <h2>Extracurricular Activities</h2>
+      <div class="user-menu">
+        <button id="user-icon-btn" class="user-icon-btn" title="Login">👤</button>
+      </div>
     </header>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Teacher Login</h3>
+          <button class="close-btn" id="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="login-form">
+            <div class="form-group">
+              <label for="username">Username:</label>
+              <input type="text" id="username" required placeholder="Enter username" />
+            </div>
+            <div class="form-group">
+              <label for="password">Password:</label>
+              <input type="password" id="password" required placeholder="Enter password" />
+            </div>
+            <div id="login-message" class="hidden"></div>
+            <div class="form-group button-group">
+              <button type="submit" class="btn-primary">Login</button>
+              <button type="button" class="btn-secondary" id="cancel-btn">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logout Modal (shown when logged in) -->
+    <div id="logout-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Teacher Panel</h3>
+          <button class="close-btn" id="close-logout-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>Logged in as: <strong id="logged-user"></strong></p>
+          <button type="button" class="btn-secondary" id="logout-btn" style="width: 100%;">Logout</button>
+        </div>
+      </div>
+    </div>
 
     <main>
       <section id="activities-container">

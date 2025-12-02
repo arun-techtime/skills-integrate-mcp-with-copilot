@@ -3,21 +3,45 @@ High School Management System API
 
 A super simple FastAPI application that allows students to view and sign up
 for extracurricular activities at Mergington High School.
+Now with teacher authentication for managing student registrations.
 """
 
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
+from fastapi.middleware.cors import CORSMiddleware
 import os
+import json
 from pathlib import Path
 
 app = FastAPI(title="Mergington High School API",
               description="API for viewing and signing up for extracurricular activities")
 
+# Add CORS middleware to allow frontend to make requests
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Mount the static files directory
 current_dir = Path(__file__).parent
 app.mount("/static", StaticFiles(directory=os.path.join(Path(__file__).parent,
           "static")), name="static")
+
+# Load teacher credentials from JSON file
+def load_teachers():
+    teachers_file = Path(__file__).parent / "teachers.json"
+    try:
+        with open(teachers_file, 'r') as f:
+            data = json.load(f)
+            return data.get("teachers", {})
+    except FileNotFoundError:
+        return {}
+
+teachers = load_teachers()
 
 # In-memory activity database
 activities = {
@@ -83,6 +107,15 @@ def root():
     return RedirectResponse(url="/static/index.html")
 
 
+@app.post("/login")
+def login(username: str, password: str):
+    """Authenticate a teacher"""
+    if username in teachers and teachers[username] == password:
+        return {"success": True, "username": username}
+    else:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+
 @app.get("/activities")
 def get_activities():
     return activities
@@ -111,8 +144,21 @@ def signup_for_activity(activity_name: str, email: str):
 
 
 @app.delete("/activities/{activity_name}/unregister")
-def unregister_from_activity(activity_name: str, email: str):
-    """Unregister a student from an activity"""
+def unregister_from_activity(activity_name: str, email: str, admin: bool = False):
+    """Unregister a student from an activity
+    
+    Args:
+        activity_name: Name of the activity
+        email: Email of the student to unregister
+        admin: Whether the request is from an authenticated admin/teacher
+    """
+    # Only teachers (admin=True) can use this endpoint
+    if not admin:
+        raise HTTPException(
+            status_code=403,
+            detail="Only authenticated teachers can remove students. Please log in."
+        )
+    
     # Validate activity exists
     if activity_name not in activities:
         raise HTTPException(status_code=404, detail="Activity not found")
